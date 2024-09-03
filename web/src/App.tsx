@@ -1,8 +1,16 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import React, { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_KEY = import.meta.env.VITE_API_KEY || "secret-api-key";
+
+const api: AxiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "X-API-Key": API_KEY,
+  },
+});
 
 interface Issue {
   id: number;
@@ -29,13 +37,13 @@ export const App: React.FC = () => {
   }, []);
 
   const fetchIssues = async () => {
-    const response = await axios.get<Issue[]>(`${API_URL}/issues`);
+    const response = await api.get<Issue[]>(`${API_URL}/issues`);
     setIssues(response.data);
   };
 
   const createIssue = async () => {
     try {
-      const response = await axios.post<Issue>(`${API_URL}/issues`, newIssue);
+      const response = await api.post<Issue>(`${API_URL}/issues`, newIssue);
       setIssues((prevIssues) => [...prevIssues, response.data]);
       setNewIssue({ title: "", description: "" });
       enqueueSnackbar("Issue created", { variant: "success" });
@@ -49,7 +57,7 @@ export const App: React.FC = () => {
 
   const updateIssueHandler = async () => {
     try {
-      const response = await axios.put<Issue>(
+      const response = await api.put<Issue>(
         `${API_URL}/issues/${updateIssue.id}`,
         updateIssue
       );
@@ -70,7 +78,7 @@ export const App: React.FC = () => {
 
   const deleteIssue = async (id: number) => {
     try {
-      await axios.delete(`${API_URL}/issues/${id}`);
+      await api.delete(`${API_URL}/issues/${id}`);
       setIssues((prevIssues) => prevIssues.filter((issue) => issue.id !== id));
       enqueueSnackbar("Issue deleted", {
         variant: "success",
@@ -81,6 +89,18 @@ export const App: React.FC = () => {
         { variant: "error" }
       );
     }
+  };
+
+  const formatCreatedAt = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
   };
 
   return (
@@ -151,16 +171,18 @@ export const App: React.FC = () => {
             <h3 className="issue__title">
               <span className="issue__id">#{issue.id}</span> {issue.title}
             </h3>
-            <p className="issue__created-at">
-              created on {new Date(issue.createdAt).toLocaleString()}
-            </p>
             <p className="issue__description">{issue.description}</p>
-            <button
-              className="issue__button"
-              onClick={() => deleteIssue(issue.id)}
-            >
-              Delete
-            </button>
+            <div className="issue__footer">
+              <p className="issue__created-at">
+                Created on {formatCreatedAt(issue.createdAt)}
+              </p>
+              <button
+                className="issue__button"
+                onClick={() => deleteIssue(issue.id)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -30,11 +30,23 @@
   @apply bg-gray-100 p-4 rounded mb-4;
 
   &__title {
-    @apply text-lg font-semibold text-gray-800 mb-2;
+    @apply text-lg font-semibold text-gray-800 mb-2 flex items-center;
+  }
+
+  &__id {
+    @apply text-gray-500 mr-2;
   }
 
   &__description {
     @apply text-gray-600 mb-4;
+  }
+
+  &__footer {
+    @apply flex justify-between items-center mt-4;
+  }
+
+  &__created-at {
+    @apply text-sm text-gray-400 italic;
   }
 
   &__button {
