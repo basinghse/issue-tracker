@@ -1,5 +1,6 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
 
 const API_URL = "http://localhost:3001";
 
@@ -10,6 +11,7 @@ interface Issue {
 }
 
 export const App: React.FC = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [newIssue, setNewIssue] = useState<Omit<Issue, "id">>({
     title: "",
@@ -26,25 +28,62 @@ export const App: React.FC = () => {
   }, []);
 
   const fetchIssues = async () => {
-    const response = await axios.get<Issue>(`${API_URL}/issues/1`);
-    setIssues([response.data]);
+    const response = await axios.get<Issue[]>(`${API_URL}/issues`);
+    setIssues(response.data);
   };
 
   const createIssue = async () => {
-    await axios.post(`${API_URL}/issues`, newIssue);
-    setNewIssue({ title: "", description: "" });
-    fetchIssues();
+    try {
+      const response = await axios.post<Issue>(`${API_URL}/issues`, newIssue);
+      setIssues((prevIssues) => [...prevIssues, response.data]);
+      setNewIssue({ title: "", description: "" });
+      enqueueSnackbar("Issue created", {
+        variant: "success",
+      });
+    } catch (error) {
+      enqueueSnackbar(
+        "Error creating issue. Please contact support if the error persists.",
+        { variant: "error" }
+      );
+    }
   };
 
   const updateIssueHandler = async () => {
-    await axios.put(`${API_URL}/issues/${updateIssue.id}`, updateIssue);
-    setUpdateIssue({ id: 0, title: "", description: "" });
-    fetchIssues();
+    try {
+      const response = await axios.put<Issue>(
+        `${API_URL}/issues/${updateIssue.id}`,
+        updateIssue
+      );
+      setIssues((prevIssues) =>
+        prevIssues.map((issue) =>
+          issue.id === updateIssue.id ? response.data : issue
+        )
+      );
+      setUpdateIssue({ id: 0, title: "", description: "" });
+      enqueueSnackbar("Issue updated", {
+        variant: "success",
+      });
+    } catch (error) {
+      enqueueSnackbar(
+        "Error updating issue. Please contact support if the error persists.",
+        { variant: "error" }
+      );
+    }
   };
 
   const deleteIssue = async (id: number) => {
-    await axios.delete(`${API_URL}/issues/${id}`);
-    fetchIssues();
+    try {
+      await axios.delete(`${API_URL}/issues/${id}`);
+      setIssues((prevIssues) => prevIssues.filter((issue) => issue.id !== id));
+      enqueueSnackbar("Issue deleted", {
+        variant: "success",
+      });
+    } catch (error) {
+      enqueueSnackbar(
+        "Error deleting issue. Please contact support if the error persists.",
+        { variant: "error" }
+      );
+    }
   };
 
   return (
