@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import "./App.css";
 
 const API_URL = "http://localhost:3001";
 
