@@ -8,16 +8,17 @@ interface Issue {
   id: number;
   title: string;
   description: string;
+  createdAt: string;
 }
 
 export const App: React.FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [newIssue, setNewIssue] = useState<Omit<Issue, "id">>({
+  const [newIssue, setNewIssue] = useState<Omit<Issue, "id" | "createdAt">>({
     title: "",
     description: "",
   });
-  const [updateIssue, setUpdateIssue] = useState<Issue>({
+  const [updateIssue, setUpdateIssue] = useState<Omit<Issue, "createdAt">>({
     id: 0,
     title: "",
     description: "",
@@ -37,9 +38,7 @@ export const App: React.FC = () => {
       const response = await axios.post<Issue>(`${API_URL}/issues`, newIssue);
       setIssues((prevIssues) => [...prevIssues, response.data]);
       setNewIssue({ title: "", description: "" });
-      enqueueSnackbar("Issue created", {
-        variant: "success",
-      });
+      enqueueSnackbar("Issue created", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(
         "Error creating issue. Please contact support if the error persists.",
@@ -60,9 +59,7 @@ export const App: React.FC = () => {
         )
       );
       setUpdateIssue({ id: 0, title: "", description: "" });
-      enqueueSnackbar("Issue updated", {
-        variant: "success",
-      });
+      enqueueSnackbar("Issue updated", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(
         "Error updating issue. Please contact support if the error persists.",
@@ -151,7 +148,12 @@ export const App: React.FC = () => {
         <h2 className="app__section-title">Issues</h2>
         {issues.map((issue) => (
           <div key={issue.id} className="issue">
-            <h3 className="issue__title">{issue.title}</h3>
+            <h3 className="issue__title">
+              <span className="issue__id">#{issue.id}</span> {issue.title}
+            </h3>
+            <p className="issue__created-at">
+              created on {new Date(issue.createdAt).toLocaleString()}
+            </p>
             <p className="issue__description">{issue.description}</p>
             <button
               className="issue__button"

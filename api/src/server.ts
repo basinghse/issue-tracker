@@ -11,16 +11,24 @@ interface Issue {
   id: number;
   title: string;
   description: string;
+  createdAt: string;
 }
 
 let issues: Issue[] = [
-  { id: 1, title: 'Sample Issue 1', description: 'This is the first sample issue' },
-  { id: 2, title: 'Sample Issue 2', description: 'This is the second sample issue' },
+  { id: 1, title: 'Sample Issue 1', description: 'This is the first sample issue', createdAt: new Date().toISOString() },
+  { id: 2, title: 'Sample Issue 2', description: 'This is the second sample issue', createdAt: new Date().toISOString() },
 ];
+
+let nextId = 3;
 
 // Create
 app.post('/issues', (request, response) => {
-  const newIssue: Issue = { ...request.body, id: Date.now() };
+  const newIssue: Issue = { 
+    ...request.body, 
+    id: nextId, 
+    createdAt: new Date().toISOString()
+  };
+  nextId++;
   issues.push(newIssue);
   console.log('Created:', newIssue);
   response.status(201).json(newIssue);
@@ -46,7 +54,7 @@ app.put('/issues/:id', (request, response) => {
   const id = parseInt(request.params.id);
   const index = issues.findIndex(i => i.id === id);
   if (index !== -1) {
-    issues[index] = { ...issues[index], ...request.body };
+    issues[index] = { ...issues[index], ...request.body, id, createdAt: issues[index].createdAt };
     console.log('Updated:', issues[index]);
     response.json(issues[index]);
   } else {
